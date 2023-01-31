@@ -2,6 +2,7 @@ package defaultaddons
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -162,6 +163,7 @@ func getLatestKubeProxyImage(ctx context.Context, input AddonInput) (string, err
 	if err != nil {
 		return "", err
 	}
+	logger.Info("got version: %s", latestEKSReportedVersion)
 
 	// Sometimes the EKS API is ahead, sometimes behind. Pick whichever is latest
 	eksVersionIsGreaterThanDefaultVersion, err := versionGreaterThan(latestEKSReportedVersion, defaultClusterVersion)
@@ -221,15 +223,21 @@ func getLatestImageVersionFromEKS(ctx context.Context, eksAPI awsapi.EKS, contro
 		versions = append(versions, v)
 	}
 
+	allVersions, _ := json.Marshal(versions)
+	logger.Info("all versions: %s", string(allVersions))
+
 	sort.SliceStable(versions, func(i, j int) bool {
 		return versions[j].LessThan(versions[i])
 	})
+
+	logger.Info("latest version: %s", versions[0].Original())
 
 	return toMinimalVersion(versions[0]), nil
 }
 
 func toMinimalVersion(v *version.Version) string {
 	preRelease := v.Prerelease()
+	logger.Info("pre-release version: %s", preRelease)
 	if preRelease == "" {
 		return v.Original()
 	}

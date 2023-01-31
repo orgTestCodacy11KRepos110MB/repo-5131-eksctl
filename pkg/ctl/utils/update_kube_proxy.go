@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 
+	"github.com/kris-nova/logger"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -60,10 +62,11 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
+	logger.Info("server version: %v", kubernetesVersion)
 
 	updateRequired, err := defaultaddons.UpdateKubeProxy(ctx, defaultaddons.AddonInput{
 		RawClient:           rawClient,
-		ControlPlaneVersion: kubernetesVersion,
+		ControlPlaneVersion: "1.22",
 		Region:              meta.Region,
 		EKSAPI:              ctl.AWSProvider.EKS(),
 	}, cmd.Plan)
